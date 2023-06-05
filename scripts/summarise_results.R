@@ -34,12 +34,16 @@ full_stan_diag <- map(mcmc_list, ~read_csv(here::here("results", "mcmc_summaries
 write_csv(full_stan_diag, here::here("results", "all_counties_stan_diag.csv"))
 # create final rt frame ---------------------------------------------------
 
-timevarying_quantiles <- map(timevarying_list, ~read_csv(here::here("results", "generated_quantities", .x))) 
+timevarying_quantiles <- map(timevarying_list, ~read_csv(here::here("results", "generated_quantities", .x)) %>%
+                                                mutate(address = .x)) 
 
 rt_quantiles <- timevarying_quantiles %>%
   map(~.x %>% filter(name == "rt_t_values") %>%
         rename(week = time)) %>%
-  bind_rows(.id = "id")
+  bind_rows() %>% 
+  mutate(id = str_extract(address, "[0-9]+"))
+# test <- rt_quantiles %>% filter(id == 25)
+# testdata <- fitted_data %>% filter(id == 25)
 
 fitted_data$id <- as.character(fitted_data$id)
 rt_quantiles <- rt_quantiles %>% 
@@ -48,12 +52,9 @@ rt_quantiles <- rt_quantiles %>%
 
 
 # testing -----------------------------------------------------------------
-# ids = c(16, 20, 23,25,26,27,29)
-# test <- rt_quantiles %>% filter(id %in% ids)
+# ids = c(25,26,27,29)
 # testing <- read_csv(here::here("full_country_rt_quantiles.csv"))%>% filter(id %in% ids)
 # 
-# sacramento <- testing %>% filter(id == 16)
-# sacdata <- fitted_data %>% filter(id == 16)
 # sacramento %>%
 #   ggplot(aes(date, value, ymin = .lower, ymax = .upper)) +
 #   geom_lineribbon() +
