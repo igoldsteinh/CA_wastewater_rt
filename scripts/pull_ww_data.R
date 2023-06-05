@@ -23,7 +23,8 @@ wastewater_url <- resources %>%
                   filter(name == "COVID-19 Wastewater Surveillance Data. California") %>% 
                   pull(url)
 ww_dat <-
-  read_csv(wastewater_url)
+  read_csv(wastewater_url)%>% 
+  mutate(date = lubridate::mdy(sample_collect_date))
 
 issues <- problems(ww_dat)
 
@@ -47,51 +48,115 @@ issues <- problems(ww_dat)
 
 
 
-# counties ----------------------------------------------------------------
-fips_crosswalk <- read_csv(here::here("data", "state_and_county_fips_master.csv")) %>% dplyr::select(fips, name)
+# cdph crosswalk ----------------------------------------------------------
+cdph_crosswalk <- read_csv(here::here("data", "sewershed_county_address.csv")) %>% 
+                  rename(county = County_address)
 
-fips_crosswalk$real_fips <- as.character(fips_crosswalk$fips)
-
-combo_fips <- c("06075, 06081", "06037, 06111", "06001, 06013")
-combo_names <- c("San Francisco County and San Mateo County", 
-                 "Los Angeles County and Ventura County", 
-                 "Alameda County and Contra Costa County")
-
-combo_frame <- data.frame(fips = NA, name = combo_names, real_fips = combo_fips)
-
-fips_crosswalk <- bind_rows(fips_crosswalk, combo_frame) %>% 
-                  rename(actual_name = name) %>% 
-                  dplyr::select(real_fips, actual_name)
 
 ww_dat <- ww_dat %>% 
-          mutate(real_fips = ifelse(nchar(county_names) == 5, sub('.', '', county_names), county_names))
+          left_join(cdph_crosswalk, by = "wwtp_name") %>% 
+          filter(!is.na(county))
 
-ww_dat <- ww_dat %>% 
-          left_join(fips_crosswalk, by = "real_fips")
-           
-check <- ww_dat %>% dplyr::select(real_fips, county_names, actual_name)
+start_date <- "2023-04-01"
+fitting_dat <- ww_dat %>% dplyr::select(wwtp_name, 
+                    sample_collect_date,pcr_target, 
+                    pcr_gene_target, 
+                    pcr_target_avg_conc, 
+                    county, 
+                    population_served) %>% 
+               mutate(date = as.Date("2019-01-01"))
 
-county_pop <- read_csv(here::here("data", "county_pop.csv")) %>% 
-              mutate(actual_name = paste0(County, " County")) %>%
-              rename(total_pop = Population)
-
-ww_dat <- ww_dat %>% 
-          left_join(county_pop, by = "actual_name")
-
-check <- ww_dat %>% dplyr::select(actual_name, total_pop) %>% distinct()
-
-county_looksee = ww_dat %>% dplyr::select(actual_name, wwtp_name, population_served, total_pop) %>% 
-                 distinct() %>%
-                 mutate(percent_pop = population_served/total_pop) %>% 
-                 group_by(actual_name) %>% 
-                 mutate(total_percent_served = sum(percent_pop))
-
-#LASAN_Hyp is the joint with ventura, do not count it for LA
-
-#example of Yolo county
-yolo = ww_dat %>% filter(actual_name == "Yolo County") %>% dplyr::select(wwtp_name, sample_collect_date, pcr_target_avg_conc) %>% 
-  mutate(date = lubridate::mdy(sample_collect_date))
+problem_plants <- c("Manteca WW Quality Control Facility", 
+                    "Mountain House WWTP", 
+                    "Stockton Regional WW Control Facility", 
+                    "Tracy WWTP", 
+                    "White Slough Water Pollution Control Facility")
 
 
-alameda = ww_dat %>% filter(actual_name == "Alameda County") %>% dplyr::select(wwtp_name, sample_collect_date, pcr_target_avg_conc) %>% 
-  mutate(date = lubridate::mdy(sample_collect_date))
+fitting_dat$date[fitting_dat$wwtp_name %in% problem_plants] <- lubridate::ymd(fitting_dat$sample_collect_date[fitting_dat$wwtp_name %in% problem_plants])
+fitting_dat$date[!(fitting_dat$wwtp_name %in% problem_plants)] <- lubridate::mdy(fitting_dat$sample_collect_date[!(fitting_dat$wwtp_name %in% problem_plants)])
+
+fitting_dat <- fitting_dat %>% 
+               filter(date >= start_date) %>% 
+               filter(pcr_target == "sars-cov-2")
+
+# lets just do it for n1 genes for now
+n1_names <- c("N", "n1")
+fitting_dat <- fitting_dat %>% 
+               filter(pcr_gene_target %in% n1_names)
+
+# group by date, weight an average based on population
+fitting_dat <- fitting_dat %>% 
+               group_by(county, date) %>% 
+               mutate(total_pop = sum(population_served)) %>% 
+               ungroup() %>% 
+               mutate(pop_weight = population_served/total_pop,
+                      weighted_conc = pcr_target_avg_conc * pop_weight) %>% 
+               group_by(county, date) %>% 
+               summarise(avg_weighted_conc = sum(weighted_conc),
+                         log_conc = log(avg_weighted_conc))
+
+id_list <- data.frame(county = unique(fitting_dat$county)) %>% 
+           mutate(id = row_number())
+
+fitting_dat <- fitting_dat %>% 
+               left_join(id_list, by = "county")
+
+# set up fitting dates and epiweeks 
+fitting_dat <- fitting_dat %>% 
+               group_by(county) %>% 
+               mutate(yearday = yday(date),
+                      new_time = yearday - min(yearday) + 1,
+                      epiweek = epiweek(date),
+                      new_week = epiweek - min(epiweek) + 1)
+
+
+write_csv(fitting_dat, here::here("data", "wwtp_fitting_data.csv"))
+# finding initial conditions ----------------------------------------------
+
+cases_deaths_url <- resources %>% filter(name == "Statewide COVID-19 Cases Deaths Tests") %>% pull(url)
+hosp_url <- resources %>% filter(name == "Statewide Covid-19 Hospital County Data") %>% pull(url)
+
+cases <-
+  read_csv(cases_deaths_url) %>%
+  mutate(date = lubridate::ymd(date),
+         deaths = as.integer(deaths),
+         #reported_cases = as.integer(reported_cases),
+         cases = as.integer(cases),
+         positive_tests = as.integer(positive_tests),
+         total_tests = as.integer(total_tests)) %>%
+  select(date,
+         cases = cases,
+         tests = total_tests,
+         deaths,
+         county = area) %>%
+  arrange(date, county)
+
+start_date <- fitting_dat %>% 
+              group_by(county) %>% 
+              filter(date == min(date)) %>% 
+              dplyr::select(county, date) %>% 
+              rename(start_date = date) %>% 
+              distinct()
+
+init_cases <- cases %>% 
+         left_join(start_date, by = "county") %>% 
+         filter(!is.na(start_date)) %>% 
+         group_by(county) %>% 
+  mutate(case_date = start_date - days(11),
+         recover_date = case_date - days(18),
+         current_cases = date >= case_date & date < start_date,
+         recovered_cases = date >= recover_date & date < case_date,
+         status = ifelse(current_cases, "current_cases", ifelse(recovered_cases, "recovered_cases", "other"))) %>%
+  mutate(year = year(date),
+         epi_week = epiweek(date)) %>% 
+  filter(status == "current_cases" | status == "recovered_cases") %>% 
+  group_by(county, status) %>% 
+  summarise(total_cases = sum(cases)) %>% 
+  pivot_wider(id_cols = county, names_from = status, values_from = total_cases) %>% 
+  mutate(E = current_cases * 5 * (4/11),
+         I = current_cases * 5 * (7/11),
+         R1 = recovered_cases * 5) %>% 
+  left_join(id_list, by = "county")
+
+write_csv(init_cases, here::here("data", "county_init_conds.csv"))
