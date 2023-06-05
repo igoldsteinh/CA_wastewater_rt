@@ -108,7 +108,8 @@ fitting_dat <- fitting_dat %>%
                mutate(yearday = yday(date),
                       new_time = yearday - min(yearday) + 1,
                       epiweek = epiweek(date),
-                      new_week = epiweek - min(epiweek) + 1)
+                      new_week = ceiling(new_time/7)) %>% 
+               filter(avg_weighted_conc > 0)
 
 
 write_csv(fitting_dat, here::here("data", "wwtp_fitting_data.csv"))

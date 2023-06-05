@@ -47,10 +47,27 @@ rt_quantiles <- rt_quantiles %>%
         dplyr::select(county, id, week, date, value, .lower, .upper, .width,.point, .interval) 
 
 
+# testing -----------------------------------------------------------------
+# ids = c(16, 20, 23,25,26,27,29)
+# test <- rt_quantiles %>% filter(id %in% ids)
+# testing <- read_csv(here::here("full_country_rt_quantiles.csv"))%>% filter(id %in% ids)
+# 
+# sacramento <- testing %>% filter(id == 16)
+# sacdata <- fitted_data %>% filter(id == 16)
+# sacramento %>%
+#   ggplot(aes(date, value, ymin = .lower, ymax = .upper)) +
+#   geom_lineribbon() +
+#   scale_y_continuous("Rt", label = comma) +
+#   scale_x_date(name = "Date") +
+#   ggtitle(str_c("EIRR Posterior Rt County Sacramento")) +
+#   my_theme
+
 write_csv(rt_quantiles, here::here("results", "full_country_rt_quantiles.csv"))
 
 cdph_quantiles <- rt_quantiles %>% filter(.width == 0.95)
-missing <- rt_quantiles %>% filter(is.na(.width))
+
+write_csv(cdph_quantiles, here::here("results", "cdph_rt_quantiles.csv"))
+
 # visualize results
 # all credit to Damon Bayer for plot functions 
 my_theme <- list(
