@@ -8,7 +8,7 @@ using Random
 
 county_id =
 if length(ARGS) == 0
-   1
+   25
 else
   parse(Int64, ARGS[1])
 end
@@ -61,6 +61,14 @@ data_log_copies = dat[:, :log_conc]
 
 obstimes = dat[:, :new_time]
 obstimes = convert(Vector{Float64}, obstimes)
+
+  # trying to avoid the stupid situation where we're telling to change at the end of the solver which doesn't make sense
+  if maximum(obstimes) % 7 == 0
+    param_change_max = maximum(obstimes) - 7
+  else
+    param_change_max = maximum(obstimes)
+  end
+  param_change_times = collect(7:7.0:param_change_max)
 
 # Sample Posterior
 
