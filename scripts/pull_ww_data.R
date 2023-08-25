@@ -76,6 +76,15 @@ problem_plants <- c("Manteca WW Quality Control Facility",
 fitting_dat$date[fitting_dat$wwtp_name %in% problem_plants] <- lubridate::ymd(fitting_dat$sample_collect_date[fitting_dat$wwtp_name %in% problem_plants])
 fitting_dat$date[!(fitting_dat$wwtp_name %in% problem_plants)] <- lubridate::mdy(fitting_dat$sample_collect_date[!(fitting_dat$wwtp_name %in% problem_plants)])
 
+
+
+#check the dates
+date_check <- fitting_dat %>% 
+  dplyr::select(county, date, sample_collect_date)
+
+alameda_check <- date_check %>% filter(county == "Alameda")
+orange_check <- date_check %>% filter(county == "Orange")
+#filter date
 fitting_dat <- fitting_dat %>% 
                filter(date >= start_date) %>% 
                filter(pcr_target == "sars-cov-2")
@@ -84,7 +93,6 @@ fitting_dat <- fitting_dat %>%
 n1_names <- c("N", "n1")
 fitting_dat <- fitting_dat %>% 
                filter(pcr_gene_target %in% n1_names)
-
 # group by date, weight an average based on population
 fitting_dat <- fitting_dat %>% 
                group_by(county, date) %>% 

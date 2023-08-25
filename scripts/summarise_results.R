@@ -20,8 +20,9 @@ mcmc_list <- list.files(path = path("results", "mcmc_summaries"),  pattern = mcm
 
 fitted_data <- read_csv(here::here("data", "wwtp_fitting_data.csv"))
 # read in data and results ---------------------------------------------------------
-full_stan_diag <- map(mcmc_list, ~read_csv(here::here("results", "mcmc_summaries", .x))) %>%
-  bind_rows(.id = "id") %>%
+full_stan_diag <- map(mcmc_list, ~read_csv(here::here("results", "mcmc_summaries", .x)) %>% mutate(address = .x)) %>%
+  bind_rows() %>%
+  mutate(id = str_extract(address, "[0-9]+")) %>% 
   group_by(id) %>% 
   filter(variable != "R2[1]" & variable != "C[1]") %>%
   summarise(min_rhat = min(rhat),
