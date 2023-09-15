@@ -1,5 +1,5 @@
 using Logging
-using testpackage
+using concRt
 using DrWatson
 using JLD2
 using CSV
@@ -8,7 +8,7 @@ using Random
 
 county_id =
 if length(ARGS) == 0
-   25
+   31
 else
   parse(Int64, ARGS[1])
 end
@@ -75,6 +75,7 @@ obstimes = convert(Vector{Float64}, obstimes)
 Random.seed!(seed)
 posterior_samples = fit_eirrc_closed(data_log_copies,
                                     obstimes,
+                                    param_change_times,
                                     priors_only,
                                     n_samples,
                                     n_chains,

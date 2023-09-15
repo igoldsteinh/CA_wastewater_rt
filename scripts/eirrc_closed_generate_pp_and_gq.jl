@@ -1,5 +1,5 @@
 using Logging
-using testpackage
+using concRt
 using DrWatson
 using JLD2
 using CSV
@@ -8,7 +8,7 @@ using Random
 
 county_id =
 if length(ARGS) == 0
-   1
+   30
 else
   parse(Int64, ARGS[1])
 end
@@ -62,12 +62,20 @@ data_log_copies = dat[:, :log_conc]
 obstimes = dat[:, :new_time]
 obstimes = convert(Vector{Float64}, obstimes)
 
+if maximum(obstimes) % 7 == 0
+  param_change_max = maximum(obstimes) - 7
+else
+  param_change_max = maximum(obstimes)
+end
+param_change_times = collect(7:7.0:param_change_max)
+
 posterior_samples = load(projectdir("results",  "posterior_samples",
 string("posterior_samples_county", county_id, "_seed", seed, ".jld2")))["posterior_samples"]
 
 posterior_gq_res = generate_pp_and_gq_eirrc(posterior_samples,
                                             data_log_copies,
                                             obstimes,
+                                            param_change_times,
                                             seed,
                                             gamma_sd,
                                             gamma_mean,
