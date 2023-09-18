@@ -14,5 +14,5 @@ module load julia-1_8_5
 cd //pub/igoldst1/CA_wastewater_rt
 
 
-julia --project --threads 4 scripts/fit_eirrc.jl $SLURM_ARRAY_TASK_ID
+julia --project --threads 4 scripts/fit_eirrc_closed.jl $SLURM_ARRAY_TASK_ID
 
