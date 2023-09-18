@@ -73,3 +73,7 @@ results/generated_quantities/posterior_timevarying_quantiles_county10_seed1.csv
 results/generated_quantities/posterior_fixed_samples_county25_seed1.csv
 results/generated_quantities/posterior_df_county25_seed1.csv
 results/generated_quantities/generated_quantities_county25_seed1.csv
+results/generated_quantities/
+results/posterior_predictive/
+results/mcmc_summaries/
+results/posterior_samples/
