@@ -51,7 +51,7 @@ issues <- problems(ww_dat)
 # cdph crosswalk ----------------------------------------------------------
 cdph_crosswalk <- read_csv(here::here("data", "sewershed_county_address.csv")) %>% 
                   rename(county = County_address) %>%
-                  filter(county!="Imperial" & county!= "Madera")
+                  filter(county!="Imperial")
 
 
 ww_dat <- ww_dat %>% 
