@@ -65,26 +65,31 @@ fitting_dat <- ww_dat %>% dplyr::select(wwtp_name,
                     pcr_target_avg_conc, 
                     county, 
                     population_served) %>% 
-               mutate(date = as.Date("2019-01-01"))
+               mutate(date = parse_date_time(sample_collect_date, c("%d/%m/%Y","%m/%d/%Y", "%Y-%m-%d")))
 
-problem_plants <- c("Manteca WW Quality Control Facility", 
-                    "Mountain House WWTP", 
-                    "Stockton Regional WW Control Facility", 
-                    "Tracy WWTP", 
-                    "White Slough Water Pollution Control Facility")
-
-
-fitting_dat$date[fitting_dat$wwtp_name %in% problem_plants] <- lubridate::ymd(fitting_dat$sample_collect_date[fitting_dat$wwtp_name %in% problem_plants])
-fitting_dat$date[!(fitting_dat$wwtp_name %in% problem_plants)] <- lubridate::mdy(fitting_dat$sample_collect_date[!(fitting_dat$wwtp_name %in% problem_plants)])
+# problem_plants <- c("Manteca WW Quality Control Facility", 
+#                     "Mountain House WWTP", 
+#                     "Stockton Regional WW Control Facility", 
+#                     "Tracy WWTP", 
+#                     "White Slough Water Pollution Control Facility")
 
 
-
+# 
+# test <- fitting_dat %>% 
+#         mutate(date = ifelse(wwtp_name %in% problem_plants, 
+#                              lubridate::ymd(sample_collect_date),
+#                              lubridate::mdy(sample_collect_date))) %>%
+#         filter(is.na(date))
+# 
+# testing <- fitting_dat %>% 
+#            mutate(date = parse_date_time(sample_collect_date, c("%d/%m/%Y","%m/%d/%Y", "%Y-%m-%d"))) %>% 
+#            filter(is.na(date))
 #check the dates
-date_check <- fitting_dat %>% 
-  dplyr::select(county, date, sample_collect_date)
-
-alameda_check <- date_check %>% filter(county == "Alameda")
-orange_check <- date_check %>% filter(county == "Orange")
+# date_check <- fitting_dat %>% 
+#   dplyr::select(county, date, sample_collect_date)
+# 
+# alameda_check <- date_check %>% filter(county == "Alameda")
+# orange_check <- date_check %>% filter(county == "Orange")
 #filter date
 fitting_dat <- fitting_dat %>% 
                filter(date >= start_date) %>% 
