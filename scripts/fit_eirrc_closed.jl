@@ -26,7 +26,7 @@ mkpath(projectdir("results"))
 mkpath(projectdir("results", "posterior_samples"))
 mkpath(projectdir("results", "posterior_predictive"))
 mkpath(projectdir("results", "generated_quantities"))
-mkpath(projectidr("results", "mcmc_summaries"))
+mkpath(projectdir("results", "mcmc_summaries"))
 
 
 ## Load Data
