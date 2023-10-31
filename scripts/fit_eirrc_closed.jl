@@ -21,6 +21,13 @@ n_samples = 250
 n_chains = 4
 priors_only = false
 
+# make results directory
+mkpath(projectdir("results"))
+mkpath(projectdir("results", "posterior_samples"))
+mkpath(projectdir("results", "posterior_predictive"))
+mkpath(projectdir("results", "generated_quantities"))
+mkpath(projectidr("results", "mcmc_summaries"))
+
 
 ## Load Data
 dat = CSV.read("data/wwtp_fitting_data.csv", DataFrame)

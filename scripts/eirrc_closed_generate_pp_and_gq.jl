@@ -8,13 +8,14 @@ using Random
 
 county_id =
 if length(ARGS) == 0
-   30
+   2
 else
   parse(Int64, ARGS[1])
 end
 
 seed = 1
-
+print("county_id")
+print(county_id)
 Logging.disable_logging(Logging.Warn)
 
 ## Control Parameters

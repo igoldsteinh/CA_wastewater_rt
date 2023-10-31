@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ckanr)
 library(lubridate)
+library(fs)
 
 results_dir <- "results"
 
@@ -175,3 +176,9 @@ init_cases <- cases %>%
   left_join(id_list, by = "county")
 
 write_csv(init_cases, here::here("data", "county_init_conds.csv"))
+
+# Clear results for next fit
+if (dir_exists(results_dir)) {
+  dir_delete(results_dir)
+}
+
