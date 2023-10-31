@@ -81,6 +81,7 @@ my_theme <- list(
 
 make_rt_plot <- function(county_name) {
   rt_quantiles %>%
+    mutate(date = as.Date(date)) %>%
     filter(county == county_name) %>%
     ggplot(aes(date, value, ymin = .lower, ymax = .upper)) +
     geom_lineribbon() +
