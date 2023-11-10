@@ -101,7 +101,7 @@ n1_names <- c("N", "n1")
 fitting_dat <- fitting_dat %>% 
                filter(pcr_gene_target %in% n1_names)
 # group by date, weight an average based on population
-fitting_dat <- fitting_dat %>% 
+county_fitting_dat <- fitting_dat %>% 
                group_by(county, date) %>% 
                mutate(total_pop = sum(population_served)) %>% 
                ungroup() %>% 
@@ -111,14 +111,26 @@ fitting_dat <- fitting_dat %>%
                summarise(avg_weighted_conc = sum(weighted_conc),
                          log_conc = log(avg_weighted_conc))
 
+ca_dat <- fitting_dat %>%
+          group_by(date) %>%
+          mutate(total_pop = sum(population_served)) %>%
+          ungroup() %>%
+  mutate(pop_weight = population_served/total_pop,
+         weighted_conc = pcr_target_avg_conc * pop_weight) %>% 
+  group_by(date) %>% 
+  summarise(avg_weighted_conc = sum(weighted_conc),
+            log_conc = log(avg_weighted_conc)) %>% 
+  mutate(county = "California") %>%
+  dplyr::select(county, date, avg_weighted_conc, log_conc)
+
 id_list <- data.frame(county = unique(fitting_dat$county)) %>% 
            mutate(id = row_number())
 
-fitting_dat <- fitting_dat %>% 
+full_fitting_dat <- bind_rows(county_fitting_dat, ca_dat) %>% 
                left_join(id_list, by = "county")
 
 # set up fitting dates and epiweeks 
-fitting_dat <- fitting_dat %>% 
+full_fitting_dat <- full_fitting_dat %>% 
                group_by(county) %>% 
                mutate(yearday = yday(date),
                       new_time = yearday - min(yearday) + 1,
@@ -127,7 +139,7 @@ fitting_dat <- fitting_dat %>%
                filter(avg_weighted_conc > 0)
 
 
-write_csv(fitting_dat, here::here("data", "wwtp_fitting_data.csv"))
+write_csv(full_fitting_dat, here::here("data", "wwtp_fitting_data.csv"))
 # finding initial conditions ----------------------------------------------
 
 cases_deaths_url <- resources %>% filter(name == "Statewide COVID-19 Cases Deaths Tests") %>% pull(url)
