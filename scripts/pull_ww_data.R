@@ -166,7 +166,6 @@ cases <-
   arrange(date, county)
 
 ca_cases <- cases %>% 
-            filter(county != "Out of state") %>%
             group_by(date) %>% 
             summarise(
               cases = sum(cases),
@@ -177,7 +176,7 @@ ca_cases <- cases %>%
 
 full_cases <- bind_rows(cases, ca_cases)
 
-start_date <- full_fitting_dat %>% 
+start_date <- fitting_dat %>% 
               group_by(county) %>% 
               filter(date == min(date)) %>% 
               dplyr::select(county, date) %>% 
