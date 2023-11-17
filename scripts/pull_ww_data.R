@@ -123,10 +123,15 @@ ca_dat <- fitting_dat %>%
   mutate(county = "California") %>%
   dplyr::select(county, date, avg_weighted_conc, log_conc)
 
-id_list <- data.frame(county = unique(fitting_dat$county)) %>% 
-           mutate(id = row_number())
 
-full_fitting_dat <- bind_rows(county_fitting_dat, ca_dat) %>% 
+full_fitting_dat <- bind_rows(county_fitting_dat, ca_dat)
+
+
+id_list <- data.frame(county = unique(full_fitting_dat$county)) %>% 
+  mutate(id = row_number())
+
+
+full_fitting_dat <- full_fitting_dat %>% 
                left_join(id_list, by = "county")
 
 # set up fitting dates and epiweeks 
@@ -160,6 +165,17 @@ cases <-
          county = area) %>%
   arrange(date, county)
 
+ca_cases <- cases %>% 
+            group_by(date) %>% 
+            summarise(
+              cases = sum(cases),
+              tests = sum(tests),
+              deaths = sum(tests)
+            ) %>% 
+            mutate(county = "California")
+
+full_cases <- bind_rows(cases, ca_cases)
+
 start_date <- fitting_dat %>% 
               group_by(county) %>% 
               filter(date == min(date)) %>% 
@@ -167,7 +183,7 @@ start_date <- fitting_dat %>%
               rename(start_date = date) %>% 
               distinct()
 
-init_cases <- cases %>% 
+init_cases <- full_cases %>% 
          left_join(start_date, by = "county") %>% 
          filter(!is.na(start_date)) %>% 
          group_by(county) %>% 
