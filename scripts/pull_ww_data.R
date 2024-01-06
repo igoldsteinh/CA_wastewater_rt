@@ -97,7 +97,7 @@ fitting_dat <- fitting_dat %>%
                filter(pcr_target == "sars-cov-2")
 
 # lets just do it for n1 genes for now
-n1_names <- c("N", "n1")
+n1_names <- c("N", "n1", "N1", "n")
 fitting_dat <- fitting_dat %>% 
                filter(pcr_gene_target %in% n1_names)
 # group by date, weight an average based on population
