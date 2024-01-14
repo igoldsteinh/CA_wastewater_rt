@@ -8,7 +8,7 @@ using Random
 
 county_id =
 if length(ARGS) == 0
-   31
+   13
 else
   parse(Int64, ARGS[1])
 end
@@ -37,6 +37,7 @@ dat = filter(:id => id -> id == county_id, dat)
 ## load initial conditions 
 init_conds = CSV.read("data/county_init_conds.csv", DataFrame)
 init_conds = filter(:id => id -> id == county_id, init_conds)
+print(init_conds)
 ## Define Priors
 const gamma_sd = 0.01
 const gamma_mean =log(1/4)
