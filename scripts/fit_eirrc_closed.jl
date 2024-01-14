@@ -38,6 +38,7 @@ dat = filter(:id => id -> id == county_id, dat)
 init_conds = CSV.read("data/county_init_conds.csv", DataFrame)
 init_conds = filter(:id => id -> id == county_id, init_conds)
 print(init_conds)
+print(init_conds[1,:I])
 ## Define Priors
 const gamma_sd = 0.01
 const gamma_mean =log(1/4)
