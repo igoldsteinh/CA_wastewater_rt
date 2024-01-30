@@ -136,9 +136,11 @@ full_fitting_dat <- full_fitting_dat %>%
 
 # set up fitting dates and epiweeks 
 full_fitting_dat <- full_fitting_dat %>% 
+               mutate(year = year(date)) %>%
                group_by(county) %>% 
-               mutate(yearday = yday(date),
-                      new_time = yearday - min(yearday) + 1,
+               mutate(min_date = min(date),
+                      interval = interval(start = min_date, end = date),
+                      new_time = interval/ddays(1) + 1,
                       epiweek = epiweek(date),
                       new_week = ceiling(new_time/7)) %>% 
                filter(avg_weighted_conc > 0)
