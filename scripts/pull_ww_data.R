@@ -50,13 +50,13 @@ issues <- problems(ww_dat)
 
 
 # cdph crosswalk ----------------------------------------------------------
-cdph_crosswalk <- read_csv(here::here("data", "sewershed_county_address.csv")) %>% 
+cdph_crosswalk <- read_csv(here::here("data", "CDPH_sewershed_crosskey_Jan2024.csv")) %>% 
                   rename(county = County_address) %>%
                   filter(county!="Imperial")
 
 
 ww_dat <- ww_dat %>% 
-          left_join(cdph_crosswalk, by = "wwtp_name") %>% 
+          left_join(cdph_crosswalk, by = c("wwtp_name" = "current_wwtp_name")) %>% 
           filter(!is.na(county))
 
 start_date <- "2023-04-01"
