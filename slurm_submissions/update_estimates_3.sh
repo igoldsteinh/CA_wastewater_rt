@@ -10,7 +10,7 @@
 #SBATCH --array=1-40
 
 module purge
-module load julia-1_8_5
+module load julia
 cd //pub/igoldst1/CA_wastewater_rt
 
 
