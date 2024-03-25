@@ -8,7 +8,7 @@
 #SBATCH --mem=4G    ## 4 GB memory limit
 #SBATCH --mail-type=begin,end
 #SBATCH --mail-user=igoldst1@uci.edu
-#SBATCH --array=10,29
+#SBATCH --array=2-40
 
 module purge
 module load julia
