@@ -4,11 +4,11 @@
 #SBATCH -A vminin_lab ## account to charge
 #SBATCH -N 1          ## run on a single node
 #SBATCH -n 4          ## request 4 tasks (4 CPUs)
-#SBATCH -t 7:00:00   ## 7 hr run time limit
+#SBATCH -t 10:00:00   ## 10 hr run time limit
 #SBATCH --mem=4G    ## 4 GB memory limit
 #SBATCH --mail-type=begin,end
 #SBATCH --mail-user=igoldst1@uci.edu
-#SBATCH --array=2-40
+#SBATCH --array=1-40
 
 module purge
 module load julia
