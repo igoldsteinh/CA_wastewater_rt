@@ -7,7 +7,7 @@
 #SBATCH -t 4:00:00   ## 4 hr run time limit
 #SBATCH --mail-type=begin,end
 #SBATCH --mail-user=igoldst1@uci.edu
-#SBATCH --array=19
+#SBATCH --array=1-40
 
 module purge
 module load julia
