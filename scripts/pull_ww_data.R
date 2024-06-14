@@ -59,7 +59,7 @@ ww_dat <- ww_dat %>%
           left_join(cdph_crosswalk, by = c("wwtp_name" = "current_wwtp_name")) %>% 
           filter(!is.na(county))
 
-start_date <- "2023-04-01"
+start_date <- "2023-10-15"
 fitting_dat <- ww_dat %>% dplyr::select(wwtp_name, 
                     sample_collect_date,pcr_target, 
                     pcr_gene_target, 
@@ -165,7 +165,8 @@ cases <-
          tests = total_tests,
          deaths,
          county = area) %>%
-  arrange(date, county)
+  arrange(date, county) %>%
+  filter(!is.na(date))
 
 ca_cases <- cases %>% 
   filter(county != "Out of state") %>%
