@@ -17,7 +17,7 @@ seed = 1
 Logging.disable_logging(Logging.Warn)
 
 ## Control Parameters
-n_samples = 600
+n_samples = 700
 n_chains = 4
 priors_only = false
 
